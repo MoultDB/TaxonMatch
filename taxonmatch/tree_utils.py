@@ -833,7 +833,7 @@ def convert_tree_to_dataframe(tree, query_dataset, target_dataset, path, inat_da
     # Step 4: Merge with GBIF
     merged_gbif = pd.merge(
         df_indexed_tree,
-        query_dataset[['taxonID', 'canonicalName', 'gbif_taxonomy']],
+        query_dataset[['taxonID', 'canonicalName', 'gbif_taxonomy', 'taxonRank']],
         left_on='gbif_taxon_id',
         right_on='taxonID',
         how='left'
@@ -843,7 +843,7 @@ def convert_tree_to_dataframe(tree, query_dataset, target_dataset, path, inat_da
     # Step 5: Merge with NCBI
     merged_ncbi = pd.merge(
         merged_gbif,
-        target_dataset[['ncbi_id', 'ncbi_canonicalName', 'ncbi_target_string']],
+        target_dataset[['ncbi_id', 'ncbi_canonicalName', 'ncbi_target_string', 'ncbi_rank']],
         on='ncbi_id',
         how='left'
     )
@@ -904,11 +904,9 @@ def convert_tree_to_dataframe(tree, query_dataset, target_dataset, path, inat_da
 
         final_dataset_[canon_col] = final_dataset_[canon_col].apply(capitalize_first_word)
 
-    # Step 11: Rename columns (inat -> inaturalist)
-    final_dataset_.rename(columns={
-        "hierarchical_path": "path",
-    
-    }, inplace=True)
+    # Step 11: Rename columns
+    final_dataset_.rename(columns={"hierarchical_path": "path"}, inplace=True)
+    final_dataset_.rename(columns={"taxonRank": "gbif_rank"}, inplace=True)
 
     # Step 12: Build final column list
     
@@ -920,7 +918,9 @@ def convert_tree_to_dataframe(tree, query_dataset, target_dataset, path, inat_da
         "gbif_canonical_name",
         "gbif_synonyms_ids",
         "gbif_synonyms_names",
-        "ncbi_synonyms_names"
+        "ncbi_synonyms_names",
+        "ncbi_rank",
+        "gbif_rank"
     ]
 
     if inat_dataset is not None:
