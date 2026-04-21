@@ -470,3 +470,110 @@ def get_dataset_from_species(species_name, output_folder=None):
 
     return dataset_id, title
 
+
+def annotate_ncbi_status(df: pd.DataFrame,
+                         taxid_col: str = "ncbi_taxon_id",
+                         email: str = "tua.email.reale@dominio.ch",
+                         api_key: str | None = None,
+                         add_counts: bool = True,
+                         rate_delay: float = 0.15) -> pd.DataFrame:
+    BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+    COMMON = {"tool": "moultgpt", "email": email, "retmode": "json", "version": "2.0"}
+    if api_key: COMMON["api_key"] = api_key
+
+    def _call(endpoint: str, **params):
+        r = requests.get(f"{BASE}/{endpoint}.fcgi", params={**COMMON, **params}, timeout=25)
+        r.raise_for_status(); time.sleep(rate_delay); return r.json()
+
+    def _term_for_db(taxid: int, db: str) -> str:
+        if db == "taxonomy": return f"{taxid}[TaxID]"
+        if db in ("pubmed","pmc"): return f"txid{taxid}[Organism]"  
+        return f"txid{taxid}[Organism:exp]"
+
+    def _esearch_count(db: str, term: str) -> int:
+        return int(_call("esearch", db=db, term=term, retmax=0)["esearchresult"]["count"])
+
+    def _assembly_snapshot(taxid: int):
+        j = _call("esearch", db="assembly", term=_term_for_db(taxid,"assembly"), retmax=1)
+        cnt = int(j["esearchresult"]["count"])
+        if cnt == 0: return "", "", 0
+        ids = j["esearchresult"].get("idlist", [])
+        if not ids: return "", "", cnt
+        rec = _call("esummary", db="assembly", id=",".join(ids))["result"][ids[0]]
+        lvl  = (rec.get("assemblylevel","") or "").strip()
+        stat = (rec.get("latest","") or rec.get("assemblystatus","") or rec.get("replacedby","") or "").strip()
+        return lvl, stat, cnt
+
+    def _counts_for_taxid(taxid: int) -> dict:
+        sra   = _esearch_count("sra",        _term_for_db(taxid,"sra"))
+        nuc   = _esearch_count("nuccore",    _term_for_db(taxid,"nuccore"))
+        biop  = _esearch_count("bioproject", _term_for_db(taxid,"bioproject"))
+        bios  = _esearch_count("biosample",  _term_for_db(taxid,"biosample"))
+        coi_q = (_term_for_db(taxid,'nuccore') +
+                 ' AND (COI OR cox1 OR "cytochrome c oxidase subunit I" OR "cytochrome oxidase subunit I")')
+        coi   = _esearch_count("nuccore", coi_q)
+        lvl, stat, asm_cnt = _assembly_snapshot(taxid)
+        return dict(
+            taxid=taxid, assembly_count=asm_cnt, assembly_best_level=lvl, assembly_best_status=stat,
+            sra_count=sra, nuccore_count=nuc, nuccore_coi_count=coi,
+            bioproject_count=biop, biosample_count=bios
+        )
+
+    def _as_int(x):
+        try: return int(float(x))
+        except Exception: return 0
+
+    # classification with fixed roules (K=5 for "COI only")
+    def _classify(row) -> str:
+        asm_cnt = _as_int(row.get("assembly_count"))
+        sra     = _as_int(row.get("sra_count"))
+        nuccore = _as_int(row.get("nuccore_count"))
+        coi     = _as_int(row.get("nuccore_coi_count"))
+
+        if asm_cnt > 0:
+            return "Genome available"
+        if coi >= 1 and nuccore <= 5:
+            return "COI only"
+        if nuccore > 0:
+            return "Markers"
+        if sra > 0:
+            return "Raw only"
+        return "No molecular data"
+
+    # ---- run ----
+    out = df.copy()
+    taxids_series = pd.to_numeric(out[taxid_col], errors="coerce")
+    mask_valid = taxids_series.notna()
+    valid_taxids = taxids_series[mask_valid].astype(int).unique().tolist()
+
+    cache = {}
+    for tx in valid_taxids:
+        try: cache[tx] = _counts_for_taxid(tx)
+        except Exception:
+            cache[tx] = dict(
+                taxid=tx, assembly_count=0, assembly_best_level="", assembly_best_status="",
+                sra_count=0, nuccore_count=0, nuccore_coi_count=0, bioproject_count=0, biosample_count=0
+            )
+
+    if cache:
+        counts_df = pd.DataFrame(cache.values()).set_index("taxid")
+        out = out.merge(counts_df, how="left", left_on=taxid_col, right_index=True)
+    else:
+        for c in ["assembly_count","assembly_best_level","assembly_best_status",
+                  "sra_count","nuccore_count","nuccore_coi_count","bioproject_count","biosample_count"]:
+            out[c] = pd.NA
+
+    out["assembly_best_level"]  = out["assembly_best_level"].fillna("")
+    out["assembly_best_status"] = out["assembly_best_status"].fillna("")
+    num_cols = ["assembly_count","sra_count","nuccore_count","nuccore_coi_count","bioproject_count","biosample_count"]
+    out[num_cols] = out[num_cols].apply(pd.to_numeric, errors="coerce").fillna(0).astype(int)
+
+    # label
+    out["status_ncbi"] = out.apply(_classify, axis=1)
+    out.loc[~mask_valid, "status_ncbi"] = "No NCBI taxon id"
+
+    if not add_counts:
+        out = out[list(df.columns) + ["status_ncbi"]]
+
+    return out
+

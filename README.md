@@ -1,7 +1,19 @@
 # 🌿 TaxonMatch: Integrating Taxonomic Data from GBIF, NCBI, iNaturalist, PaleoDB, IUCN and other sources
 
+[![bioRxiv](https://img.shields.io/badge/bioRxiv-preprint-red)](https://www.biorxiv.org/content/10.64898/2026.03.18.712418v1)
+
+## 📄 Associated preprint
+https://www.biorxiv.org/content/10.64898/2026.03.18.712418v1
+
 ## 📌 Introduction
-**TaxonMatch** is a Python framework designed to **integrate, clean, and analyze taxonomic data** from **GBIF**, **NCBI**, **iNaturalist**, **PaleoDB**, and **IUCN**. It enhances taxonomic consistency across biodiversity datasets, simplifies taxonomic name matching, and enables the generation of **phylogenetic trees** based on consolidated data.
+**TaxonMatch** is a machine learning–based framework for **large-scale taxonomic reconciliation**, designed to integrate and standardize heterogeneous biodiversity data from **GBIF**, **NCBI**, **iNaturalist**, **PaleoDB**, and **IUCN**. It enhances taxonomic consistency across biodiversity datasets, simplifies taxonomic name matching, and enables the generation of **phylogenetic trees** based on consolidated data.
+
+## 🔬 Scope
+
+TaxonMatch is designed as a core component for:
+- biodiversity data integration
+- trait extraction pipelines
+- species distribution and ecological modelling workflows
 
 ### 🔍 Main Features
 - 📥 **Download and clean taxonomic datasets** from GBIF, NCBI, iNaturalist, PaleoDB, and IUCN.
@@ -25,25 +37,25 @@ conda activate taxonmatch-env
 ### 📦 Install TaxonMatch
 
 ```bash
-#Install the latest version directly from GitHub:
+# Install the latest version directly from GitHub:
 pip install git+https://github.com/MicheleRoar/TaxonMatch.git
 ```
 
 ### 📓 (Optional) Run example notebooks
 ```bash
-#Install Jupyter and optional plotting libraries:
+# Install Jupyter and optional plotting libraries:
 pip install notebook ipython ipywidgets
 jupyter notebook
 ```
 
 ### ⚠️ macOS + XGBoost fix (Apple Silicon only)
 ```bash
-#If you're on macOS with M1/M2/M3 and XGBoost fails to load due to libomp.dylib
+# If you're on macOS with M1/M2/M3 and XGBoost fails to load due to libomp.dylib
 arch -arm64 brew install libomp
 export DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH
-#To make this permanent, add to your shell config (~/.zshrc or ~/.bash_profile):
+# To make this permanent, add to your shell config (~/.zshrc or ~/.bash_profile):
 export DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH
-#Then run:
+# Then run:
 source ~/.zshrc  # or source ~/.bash_profile
 ```
 

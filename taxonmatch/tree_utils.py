@@ -53,7 +53,7 @@ def reroot_tree(tree, root_name=None):
     return tree  # Return the original tree if no root_name is specified
 
 
-def print_tree(tree, root_name=None):
+def print_tree_legacy(tree, root_name=None):
     """
     Prints the structure of a tree sorted alphabetically starting from a specified root node.
 
@@ -93,6 +93,54 @@ def print_tree(tree, root_name=None):
         
         id_str = f" ({', '.join(id_info)})" if id_info else ""
         print(f"{pre}{node.name}{id_str}")
+
+
+
+def print_tree(tree, root_name=None, dataset_id=None):
+    """
+    Prints the structure of a tree sorted alphabetically starting from a specified root node.
+
+    Args:
+    tree (AnyNode or similar): The root node to start from.
+    root_name (str, optional): The name of the node to use as the root for printing, case-insensitive.
+    dataset_id (tuple, optional): e.g. ('uuid', 'Catalogue of Life').
+        If provided, appends ' [dataset_id[1]]' to GBIF IDs.
+
+    Each node of the tree may have attributes 'ncbi_id', 'gbif_taxon_id', and 'inat_taxon_id'.
+    The nodes are printed with their names, and IDs are included if available.
+    """
+    def sort_children(node):
+        if hasattr(node, 'children'):
+            return sorted(node.children, key=lambda child: child.name.lower())
+        else:
+            return node
+
+    tree = tree[0]
+    if root_name is not None:
+        root_name = root_name.lower()
+        tree = find_node_by_name(tree, root_name)
+        if tree is None:
+            print("Root node not found.")
+            return
+
+    for pre, fill, node in txm.RenderTree(tree, childiter=sort_children):
+        ncbi_id = getattr(node, 'ncbi_id', None)
+        gbif_id = getattr(node, 'gbif_taxon_id', None)
+        inat_id = getattr(node, 'inat_taxon_id', None)
+        
+        id_info = []
+        if ncbi_id:
+            id_info.append(f"NCBI ID: {ncbi_id}")
+        if gbif_id:
+            gbif_str = f"GBIF ID: {gbif_id}"
+            if dataset_id:
+                gbif_str = f"{gbif_str} [{dataset_id[1]}]"
+            id_info.append(gbif_str)
+        if inat_id:
+            id_info.append(f"iNaturalist ID: {inat_id}")
+        
+        id_str = f" ({', '.join(id_info)})" if id_info else ""
+        print(f"{pre}{node.name}{id_str}")        
 
 
 def tree_to_newick(node):
