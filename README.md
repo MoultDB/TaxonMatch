@@ -128,12 +128,12 @@ If you want to contribute to **TaxonMatch**:
 - **Create a pull request** with a clear description of your changes.
 - **Follow the coding guidelines** and ensure all modifications are tested.
 
-<!--For questions or support, contact michele.leone@unil.ch.-->
+<!--For questions or support, contact michele.leone@unil.ch.
 
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License.-->
 
 
 
