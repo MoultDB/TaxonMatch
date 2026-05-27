@@ -1,9 +1,9 @@
 # 🌿 TaxonMatch: Integrating Taxonomic Data from GBIF, NCBI, iNaturalist, PaleoDB, IUCN and other sources
 
-[![bioRxiv](https://img.shields.io/badge/bioRxiv-preprint-red)](https://www.biorxiv.org/content/10.64898/2026.03.18.712418v1)
+<!-- [![bioRxiv](https://img.shields.io/badge/bioRxiv-preprint-red)](https://www.biorxiv.org/content/10.64898/2026.03.18.712418v1)
 
 ## 📄 Associated preprint
-https://www.biorxiv.org/content/10.64898/2026.03.18.712418v1
+https://www.biorxiv.org/content/10.64898/2026.03.18.712418v1 -->
 
 ## 📌 Introduction
 **TaxonMatch** is a machine learning–based framework for **large-scale taxonomic reconciliation**, designed to integrate and standardize heterogeneous biodiversity data from **GBIF**, **NCBI**, **iNaturalist**, **PaleoDB**, and **IUCN**. It enhances taxonomic consistency across biodiversity datasets, simplifies taxonomic name matching, and enables the generation of **phylogenetic trees** based on consolidated data.
@@ -128,7 +128,7 @@ If you want to contribute to **TaxonMatch**:
 - **Create a pull request** with a clear description of your changes.
 - **Follow the coding guidelines** and ensure all modifications are tested.
 
-For questions or support, contact michele.leone@unil.ch.
+<!--For questions or support, contact michele.leone@unil.ch.-->
 
 
 ## License
