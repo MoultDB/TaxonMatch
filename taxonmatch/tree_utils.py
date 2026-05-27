@@ -123,7 +123,7 @@ def print_tree(tree, root_name=None, dataset_id=None):
             print("Root node not found.")
             return
 
-    for pre, fill, node in txm.RenderTree(tree, childiter=sort_children):
+    for pre, fill, node in RenderTree(tree, childiter=sort_children):
         ncbi_id = getattr(node, 'ncbi_id', None)
         gbif_id = getattr(node, 'gbif_taxon_id', None)
         inat_id = getattr(node, 'inat_taxon_id', None)
@@ -691,6 +691,9 @@ def correct_inconsistent_subspecies(df):
 
     # Identify cases where the first part of the subspecies name does not match the parent species name
     inconsistent_rows = df_filtered.dropna(subset=["subspecies_first_part", "species_parent"])[lambda df: df["subspecies_first_part"] != df["species_parent"]]
+
+    if inconsistent_rows.empty:
+        return df
 
     # Replace values in the gbif_taxonomy column based on the specific rule
     def replace_species_name_vectorized(df):
