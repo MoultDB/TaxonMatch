@@ -36,9 +36,11 @@ conda activate taxonmatch-env
 
 ### 📦 Install TaxonMatch
 
+After cloning the anonymised repository, install the package locally:
+
 ```bash
-# Install the latest version directly from GitHub:
-pip install git+https://github.com/MicheleRoar/TaxonMatch.git
+cd TaxonMatch
+pip install -e .
 ```
 
 ### 📓 (Optional) Run example notebooks
